@@ -64,7 +64,7 @@ async def download_media(request: DownloadRequest, background_tasks: BackgroundT
     expected_mp4_path = os.path.join(temp_dir, f"{file_id}.mp4")
 
     ydl_opts = {
-        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/bestvideo+bestaudio/best',
+        'format': 'bestvideo+bestaudio/best',
         'merge_output_format': 'mp4',
         'outtmpl': outtmpl_pattern,
         'quiet': True,
