@@ -90,8 +90,17 @@ async def download_media(request: DownloadRequest, background_tasks: BackgroundT
     ]
     cookie_path = next((path for path in cookie_locations if os.path.exists(path)), None)
     if cookie_path:
-        ydl_opts['cookiefile'] = cookie_path
-        logger.info(f"Using cookies file from: {cookie_path}")
+        # Copy to writable temp_dir because yt-dlp attempts to update cookies during download
+        writable_cookie_path = os.path.join(temp_dir, "active_cookies.txt")
+        try:
+            import shutil
+            shutil.copyfile(cookie_path, writable_cookie_path)
+            ydl_opts['cookiefile'] = writable_cookie_path
+            logger.info(f"Copied cookies from {cookie_path} to writable path: {writable_cookie_path}")
+        except Exception as e:
+            logger.error(f"Failed to copy cookies file: {e}")
+            ydl_opts['cookiefile'] = cookie_path
+
 
 
     try:
