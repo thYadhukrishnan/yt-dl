@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamForge - High Quality Media Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-fast': 'spin 0.8s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-effect {
+            box-shadow: 0 0 50px -10px rgba(99, 102, 241, 0.25);
+        }
+        .glow-effect-active {
+            box-shadow: 0 0 60px -5px rgba(168, 85, 247, 0.35);
+        }
+    </style>
+</head>
+<body class="h-full text-slate-100 font-sans selection:bg-indigo-500 selection:text-white flex flex-col justify-between overflow-x-hidden">
+
+    <!-- Background Decoration -->
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/3 -right-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-pink-600/15 rounded-full blur-3xl"></div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="w-full max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+            </div>
+            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">StreamForge</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                FastAPI + yt-dlp Engine
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="w-full max-w-4xl mx-auto px-6 py-8 flex-grow flex flex-col justify-center">
+
+        <!-- Hero Title Section -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
+                Download Media in 
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                    Highest Quality
+                </span>
+            </h1>
+            <p class="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto font-normal">
+                Paste any YouTube or supported media link below. Streams are extracted, converted into optimal MP4 format, and delivered directly.
+            </p>
+        </div>
+
+        <!-- Downloader Input Card -->
+        <div id="cardContainer" class="glass-panel rounded-2xl p-6 sm:p-8 shadow-2xl transition-all duration-300 glow-effect">
+            <form id="downloadForm" onsubmit="handleDownload(event)" class="space-y-6">
+                <div class="relative">
+                    <label for="mediaUrl" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                        Media URL
+                    </label>
+                    <div class="relative flex items-center">
+                        <div class="absolute left-4 pointer-events-none text-slate-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                            </svg>
+                        </div>
+                        <input 
+                            type="url" 
+                            id="mediaUrl" 
+                            name="url" 
+                            required 
+                            placeholder="https://www.youtube.com/watch?v=..." 
+                            class="w-full bg-slate-900/90 text-white pl-12 pr-28 py-4 rounded-xl border border-slate-700/60 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all placeholder:text-slate-600 text-sm sm:text-base"
+                        >
+                        <button 
+                            type="button" 
+                            onclick="pasteClipboard()" 
+                            class="absolute right-3 px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors border border-slate-700"
+                        >
+                            Paste
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit" 
+                    id="submitBtn" 
+                    class="w-full py-4 px-6 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30 active:scale-[0.99] transition-all shadow-lg shadow-purple-600/25 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                    <span id="btnIcon" class="flex items-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                    </span>
+                    <span id="btnText">Start Download</span>
+                </button>
+            </form>
+
+            <!-- Status & Feedback Panel -->
+            <div id="statusContainer" class="hidden mt-6 pt-6 border-t border-slate-800">
+                <div id="statusBox" class="flex items-center gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div id="statusSpinner" class="flex-shrink-0">
+                        <svg class="w-6 h-6 text-indigo-400 animate-spin-fast" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-grow">
+                        <h4 id="statusTitle" class="text-sm font-semibold text-slate-200">Processing Media...</h4>
+                        <p id="statusDesc" class="text-xs text-slate-400 mt-0.5">Fetching metadata and merging best video + audio streams.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="errorBox" class="hidden mt-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs sm:text-sm flex items-start gap-3">
+                <svg class="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div id="errorMessage" class="flex-grow font-medium leading-relaxed">An error occurred during download.</div>
+            </div>
+        </div>
+
+        <!-- Supported Platforms Badges -->
+        <div class="mt-10 text-center">
+            <p class="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-4">Supported Platforms</p>
+            <div class="flex flex-wrap items-center justify-center gap-3 text-slate-400 text-xs font-medium">
+                <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-red-500"></span> YouTube
+                </span>
+                <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-blue-400"></span> Vimeo
+                </span>
+                <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-sky-400"></span> Twitter / X
+                </span>
+                <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-pink-500"></span> TikTok
+                </span>
+                <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> Soundcloud
+                </span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-6 text-xs text-slate-600 border-t border-slate-900">
+        <p>&copy; 2026 StreamForge. Built with FastAPI, yt-dlp & Tailwind CSS.</p>
+    </footer>
+
+    <!-- Frontend Script -->
+    <script>
+        async function pasteClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    document.getElementById('mediaUrl').value = text.trim();
+                }
+            } catch (err) {
+                console.warn('Clipboard read error:', err);
+            }
+        }
+
+        async function handleDownload(event) {
+            event.preventDefault();
+            
+            const urlInput = document.getElementById('mediaUrl');
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnIcon = document.getElementById('btnIcon');
+            const statusContainer = document.getElementById('statusContainer');
+            const statusBox = document.getElementById('statusBox');
+            const statusTitle = document.getElementById('statusTitle');
+            const statusDesc = document.getElementById('statusDesc');
+            const statusSpinner = document.getElementById('statusSpinner');
+            const errorBox = document.getElementById('errorBox');
+            const errorMessage = document.getElementById('errorMessage');
+            const cardContainer = document.getElementById('cardContainer');
+
+            const mediaUrl = urlInput.value.trim();
+            if (!mediaUrl) return;
+
+            // Reset States
+            errorBox.classList.add('hidden');
+            statusContainer.classList.remove('hidden');
+            statusBox.className = "flex items-center gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800";
+            statusTitle.textContent = "Processing Media...";
+            statusDesc.textContent = "yt-dlp is fetching stream metadata and downloading formats...";
+            statusSpinner.innerHTML = `
+                <svg class="w-6 h-6 text-indigo-400 animate-spin-fast" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            `;
+
+            // Disable UI
+            submitBtn.disabled = true;
+            btnText.textContent = "Processing...";
+            btnIcon.innerHTML = `
+                <svg class="w-5 h-5 text-white animate-spin-fast" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            `;
+            cardContainer.classList.add('glow-effect-active');
+
+            try {
+                const response = await fetch('/api/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: mediaUrl })
+                });
+
+                if (!response.ok) {
+                    let errDetail = 'Download failed. Please check the URL and try again.';
+                    try {
+                        const errorJson = await response.json();
+                        if (errorJson && errorJson.detail) {
+                            errDetail = errorJson.detail;
+                        }
+                    } catch (_) {}
+                    throw new Error(errDetail);
+                }
+
+                // Download completed, receiving binary blob
+                statusTitle.textContent = "Preparing Download File...";
+                statusDesc.textContent = "Streaming file data to your browser...";
+
+                const blob = await response.blob();
+
+                // Extract filename from header if available
+                let filename = 'media_video.mp4';
+                const disposition = response.headers.get('Content-Disposition');
+                if (disposition && disposition.includes('filename=')) {
+                    const match = disposition.match(/filename=["']?([^"';]+)["']?/);
+                    if (match && match[1]) {
+                        filename = match[1];
+                    }
+                }
+
+                // Trigger Browser Download
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(downloadUrl);
+
+                // Success UI State
+                statusTitle.textContent = "Download Complete!";
+                statusDesc.textContent = `Saved file: ${filename}`;
+                statusBox.className = "flex items-center gap-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20";
+                statusSpinner.innerHTML = `
+                    <div class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                `;
+
+            } catch (err) {
+                console.error(err);
+                errorMessage.textContent = err.message || 'An unexpected error occurred.';
+                errorBox.classList.remove('hidden');
+                statusContainer.classList.add('hidden');
+            } finally {
+                // Re-enable UI
+                submitBtn.disabled = false;
+                btnText.textContent = "Start Download";
+                btnIcon.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                `;
+                cardContainer.classList.remove('glow-effect-active');
+            }
+        }
+    </script>
+</body>
+</html>
