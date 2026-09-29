@@ -72,7 +72,7 @@ async def download_media(request: DownloadRequest, background_tasks: BackgroundT
         'nocheckcertificate': True,
         'extractor_args': {
             'youtube': {
-                'player_client': ['android', 'ios', 'mweb', 'web']
+                'player_client': ['ios', 'android', 'mweb', 'tv_embedded']
             }
         },
         'http_headers': {
@@ -80,8 +80,9 @@ async def download_media(request: DownloadRequest, background_tasks: BackgroundT
         }
     }
 
-    # Check for cookies file (root directory or /app directory)
+    # Check for cookies file (Render Secret File path included)
     cookie_locations = [
+        "/etc/secrets/cookies.txt",
         os.path.join(BASE_DIR, "..", "cookies.txt"),
         os.path.join(BASE_DIR, "cookies.txt"),
         "/app/cookies.txt",
