@@ -77,9 +77,21 @@ async def download_media(request: DownloadRequest, background_tasks: BackgroundT
         },
         'http_headers': {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
-            'Accept-Language': 'en-US,en;q=0.9',
         }
     }
+
+    # Check for cookies file (root directory or /app directory)
+    cookie_locations = [
+        os.path.join(BASE_DIR, "..", "cookies.txt"),
+        os.path.join(BASE_DIR, "cookies.txt"),
+        "/app/cookies.txt",
+        "cookies.txt"
+    ]
+    cookie_path = next((path for path in cookie_locations if os.path.exists(path)), None)
+    if cookie_path:
+        ydl_opts['cookiefile'] = cookie_path
+        logger.info(f"Using cookies file from: {cookie_path}")
+
 
     try:
         logger.info(f"Starting download for URL: {url}")
