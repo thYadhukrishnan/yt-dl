@@ -72,7 +72,7 @@ async def download_media(request: DownloadRequest, background_tasks: BackgroundT
         'nocheckcertificate': True,
         'extractor_args': {
             'youtube': {
-                'player_client': ['ios', 'android', 'mweb', 'tv_embedded']
+                'player_client': ['android', 'web', 'ios', 'mweb']
             }
         },
         'http_headers': {
