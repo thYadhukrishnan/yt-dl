@@ -80,6 +80,14 @@ async def download_media(request: DownloadRequest, background_tasks: BackgroundT
         }
     }
 
+    # Optional Proxy Configuration
+    if os.environ.get("YOUTUBE_PROXY"):
+        ydl_opts['proxy'] = os.environ.get("YOUTUBE_PROXY")
+
+    # Optional PO Token Configuration
+    if os.environ.get("YOUTUBE_PO_TOKEN"):
+        ydl_opts['extractor_args']['youtube']['po_token'] = [f"web+{os.environ.get('YOUTUBE_PO_TOKEN')}"]
+
     # Check for YOUTUBE_COOKIES environment variable first
     raw_cookies_env = os.environ.get("YOUTUBE_COOKIES")
     if raw_cookies_env and raw_cookies_env.strip():
