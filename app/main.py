@@ -64,7 +64,7 @@ async def download_media(request: DownloadRequest, background_tasks: BackgroundT
     expected_mp4_path = os.path.join(temp_dir, f"{file_id}.mp4")
 
     ydl_opts = {
-        'format': 'bestvideo+bestaudio/best',
+        'format': 'bestvideo*+bestaudio/best/b',
         'merge_output_format': 'mp4',
         'outtmpl': outtmpl_pattern,
         'quiet': True,
@@ -72,7 +72,7 @@ async def download_media(request: DownloadRequest, background_tasks: BackgroundT
         'nocheckcertificate': True,
         'extractor_args': {
             'youtube': {
-                'player_client': ['android', 'web', 'ios', 'mweb']
+                'player_client': ['mweb', 'ios', 'android', 'web']
             }
         },
         'http_headers': {
