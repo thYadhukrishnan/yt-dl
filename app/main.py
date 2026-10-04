@@ -72,7 +72,7 @@ async def download_media(request: DownloadRequest, background_tasks: BackgroundT
         'nocheckcertificate': True,
         'extractor_args': {
             'youtube': {
-                'player_client': ['mweb', 'ios', 'android', 'web']
+                'player_client': ['tv_html5', 'web_creator', 'mweb', 'ios', 'android', 'web']
             }
         },
         'http_headers': {
@@ -80,26 +80,37 @@ async def download_media(request: DownloadRequest, background_tasks: BackgroundT
         }
     }
 
-    # Check for cookies file (Render Secret File path included)
-    cookie_locations = [
-        "/etc/secrets/cookies.txt",
-        os.path.join(BASE_DIR, "..", "cookies.txt"),
-        os.path.join(BASE_DIR, "cookies.txt"),
-        "/app/cookies.txt",
-        "cookies.txt"
-    ]
-    cookie_path = next((path for path in cookie_locations if os.path.exists(path)), None)
-    if cookie_path:
-        # Copy to writable temp_dir because yt-dlp attempts to update cookies during download
+    # Check for YOUTUBE_COOKIES environment variable first
+    raw_cookies_env = os.environ.get("YOUTUBE_COOKIES")
+    if raw_cookies_env and raw_cookies_env.strip():
         writable_cookie_path = os.path.join(temp_dir, "active_cookies.txt")
         try:
-            import shutil
-            shutil.copyfile(cookie_path, writable_cookie_path)
+            with open(writable_cookie_path, "w", encoding="utf-8") as f:
+                f.write(raw_cookies_env.strip())
             ydl_opts['cookiefile'] = writable_cookie_path
-            logger.info(f"Copied cookies from {cookie_path} to writable path: {writable_cookie_path}")
+            logger.info("Loaded cookies from YOUTUBE_COOKIES environment variable.")
         except Exception as e:
-            logger.error(f"Failed to copy cookies file: {e}")
-            ydl_opts['cookiefile'] = cookie_path
+            logger.error(f"Failed to write YOUTUBE_COOKIES env to file: {e}")
+    else:
+        # Check for cookies file (Render Secret File path included)
+        cookie_locations = [
+            "/etc/secrets/cookies.txt",
+            os.path.join(BASE_DIR, "..", "cookies.txt"),
+            os.path.join(BASE_DIR, "cookies.txt"),
+            "/app/cookies.txt",
+            "cookies.txt"
+        ]
+        cookie_path = next((path for path in cookie_locations if os.path.exists(path)), None)
+        if cookie_path:
+            writable_cookie_path = os.path.join(temp_dir, "active_cookies.txt")
+            try:
+                import shutil
+                shutil.copyfile(cookie_path, writable_cookie_path)
+                ydl_opts['cookiefile'] = writable_cookie_path
+                logger.info(f"Copied cookies from {cookie_path} to writable path: {writable_cookie_path}")
+            except Exception as e:
+                logger.error(f"Failed to copy cookies file: {e}")
+                ydl_opts['cookiefile'] = cookie_path
 
 
 
