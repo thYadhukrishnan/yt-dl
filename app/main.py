@@ -105,11 +105,21 @@ async def download_media(request: DownloadRequest, background_tasks: BackgroundT
 
     try:
         logger.info(f"Starting download for URL: {url}")
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            raw_title = info.get('title', 'video') if info else 'video'
-            safe_title = sanitize_filename(raw_title)
-            download_filename = f"{safe_title}.mp4"
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+        except yt_dlp.utils.DownloadError as err:
+            if 'cookiefile' in ydl_opts:
+                logger.warning(f"Download failed with cookies ({err}); retrying without cookiefile...")
+                ydl_opts.pop('cookiefile', None)
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
+            else:
+                raise err
+
+        raw_title = info.get('title', 'video') if info else 'video'
+        safe_title = sanitize_filename(raw_title)
+        download_filename = f"{safe_title}.mp4"
 
         # Locate actual output file
         actual_path = expected_mp4_path
